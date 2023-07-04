@@ -73,15 +73,11 @@ public abstract class ExtendedHoistField<R extends ConnectRecord<R>> implements 
         final Object value = operatingValue(record);
 
         if (schema == null) {
-            log.info("Not using schema for data");
             Map<String, Object> updatedValue = new HashMap<>();
             if (keepInRootFieldNames.isEmpty()) {
-                log.info("keepInRootFieldNames is empty");
 
                 updatedValue.put(fieldName, value);
             } else {
-                log.info("keepInRootFieldNames: {}", keepInRootFieldNames);
-
                 Map<String, Object> valueAsMap;
                 valueAsMap = getValueAsMap(value);
 
@@ -100,13 +96,10 @@ public abstract class ExtendedHoistField<R extends ConnectRecord<R>> implements 
 
             return newRecord(record, null, updatedValue);
         } else {
-            log.info("Using schema for data");
             final Struct valueStruct = (Struct) operatingValue(record);
 
             Schema updatedSchema = schemaUpdateCache.get(schema);
             if (updatedSchema == null) {
-                log.info("updatedSchema is null");
-
                 SchemaBuilder rootSchema = SchemaBuilder.struct();
                 SchemaBuilder innerSchema = SchemaBuilder.struct().optional();
 

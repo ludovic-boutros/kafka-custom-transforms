@@ -51,7 +51,7 @@ public class ExtendedHoistFieldTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void schemalessIncludedExcludedFields() {
+    public void schemalessKeepInRootFields() {
         xform.configure(Map.of("field", "magic", "keepInRootFieldNames", "keepInRoot,keepInRoot2"));
 
         final SinkRecord record = new SinkRecord("test", 0, null,
@@ -72,7 +72,27 @@ public class ExtendedHoistFieldTest {
     }
 
     @Test
-    public void schemaIncludedExcludedFields() {
+    @SuppressWarnings("unchecked")
+    public void schemalessKeepInRootEmptyFields() {
+        xform.configure(Map.of("field", "magic", "keepInRootFieldNames", "keepInRoot,keepInRoot2"));
+
+        final SinkRecord record = new SinkRecord("test", 0, null,
+                Map.of(
+                        "keepInRoot", 111,
+                        "keepInRoot2", 112),
+                null, null, 0);
+
+        final SinkRecord transformedRecord = xform.apply(record);
+
+        Map<String, Object> key = (Map<String, Object>) transformedRecord.key();
+        assertNull(transformedRecord.keySchema());
+        assertEquals(111, key.get("keepInRoot"));
+        assertEquals(112, key.get("keepInRoot2"));
+        assertNull(key.get("magic"));
+    }
+
+    @Test
+    public void schemaKeepInRootFields() {
 
         Schema originalSchema = SchemaBuilder.struct()
                 .field("shouldBeMoved", Schema.INT32_SCHEMA)
@@ -97,7 +117,7 @@ public class ExtendedHoistFieldTest {
     }
 
     @Test
-    public void schemaIncludedExcludedEmptyInnerFields() {
+    public void schemaKeepInRootEmptyInnerFields() {
 
         Schema originalSchema = SchemaBuilder.struct()
                 .field("shouldBeMoved", Schema.OPTIONAL_INT32_SCHEMA)

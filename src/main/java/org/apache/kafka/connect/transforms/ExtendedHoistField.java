@@ -70,7 +70,7 @@ public abstract class ExtendedHoistField<R extends ConnectRecord<R>> implements 
     @Override
     public R apply(R record) {
         final Schema schema = operatingSchema(record);
-        final Object value = operatingValue(record);
+        Object value = operatingValue(record);
 
         if (schema == null) {
             Map<String, Object> updatedValue = new HashMap<>();
@@ -91,51 +91,67 @@ public abstract class ExtendedHoistField<R extends ConnectRecord<R>> implements 
                     }
                 });
 
-                updatedValue.put(fieldName, innerValue);
+                if (!innerValue.isEmpty()) {
+                    updatedValue.put(fieldName, innerValue);
+                }
             }
 
             return newRecord(record, null, updatedValue);
         } else {
-            final Struct valueStruct = (Struct) operatingValue(record);
-
             Schema updatedSchema = schemaUpdateCache.get(schema);
-            if (updatedSchema == null) {
-                SchemaBuilder rootSchema = SchemaBuilder.struct();
-                SchemaBuilder innerSchema = SchemaBuilder.struct().optional();
+            final Struct updatedValue;
+            if (value instanceof Struct) {
+                final Struct valueStruct = (Struct) value;
 
-                schema.fields().forEach(f -> {
-                    if (keepInRootFieldNames.contains(f.name())) {
-                        rootSchema.field(f.name(), f.schema());
-                    } else {
-                        innerSchema.field(f.name(), f.schema());
+                if (updatedSchema == null) {
+                    SchemaBuilder rootSchema = SchemaBuilder.struct();
+                    SchemaBuilder innerSchema = SchemaBuilder.struct();
+
+                    boolean somethingInInnerValue = schema.fields().stream().map(f -> {
+                        if (keepInRootFieldNames.contains(f.name())) {
+                            rootSchema.field(f.name(), f.schema());
+                            return false;
+                        } else {
+                            innerSchema.field(f.name(), f.schema());
+                            return true;
+                        }
+                    }).reduce(false, Boolean::logicalOr);
+
+                    if (somethingInInnerValue) {
+                        rootSchema.field(fieldName, innerSchema);
                     }
-                });
-
-                updatedSchema = rootSchema.field(fieldName, innerSchema).build();
-                schemaUpdateCache.put(schema, updatedSchema);
-            }
-
-            final Struct updatedValue = new Struct(updatedSchema);
-            final Struct innerValue = new Struct(updatedSchema.field(fieldName).schema());
-
-            boolean somethingInInnerValue = schema.fields().stream().anyMatch(f -> {
-                if (valueStruct.get(f) == null) {
-                    return false;
+                    updatedSchema = rootSchema.build();
+                    schemaUpdateCache.put(schema, updatedSchema);
                 }
 
-                if (keepInRootFieldNames.contains(f.name())) {
-                    updatedValue.put(f.name(), valueStruct.get(f));
-                    return false;
-                } else {
-                    innerValue.put(f.name(), valueStruct.get(f));
-                    return true;
+                updatedValue = new Struct(updatedSchema);
+                final Struct innerValue = new Struct(updatedSchema.field(fieldName).schema());
+
+                boolean somethingInInnerValue = schema.fields().stream().map(f -> {
+                    if (valueStruct.get(f) == null) {
+                        return false;
+                    }
+
+                    if (keepInRootFieldNames.contains(f.name())) {
+                        updatedValue.put(f.name(), valueStruct.get(f));
+                        return false;
+                    } else {
+                        innerValue.put(f.name(), valueStruct.get(f));
+                        return true;
+                    }
+                }).reduce(false, Boolean::logicalOr);
+
+                if (somethingInInnerValue) {
+                    updatedValue.put(fieldName, innerValue);
                 }
-            });
+            } else {
+                if (updatedSchema == null) {
+                    updatedSchema = SchemaBuilder.struct().field(fieldName, schema).build();
+                    schemaUpdateCache.put(schema, updatedSchema);
+                }
 
-            if (somethingInInnerValue) {
-                updatedValue.put(fieldName, innerValue);
+                updatedValue = new Struct(updatedSchema).put(fieldName, value);
             }
-
             return newRecord(record, updatedSchema, updatedValue);
         }
     }

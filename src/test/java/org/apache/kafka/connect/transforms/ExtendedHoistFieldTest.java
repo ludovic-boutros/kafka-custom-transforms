@@ -73,6 +73,25 @@ public class ExtendedHoistFieldTest {
 
     @Test
     @SuppressWarnings("unchecked")
+    public void schemalessNoChange() {
+        xform.configure(Map.of("field", "magic", "keepInRootFieldNames", "keepInRoot,keepInRoot2"));
+
+        final SinkRecord record = new SinkRecord("test", 0, null,
+                Map.of(
+                        "keepInRoot", 111,
+                        "keepInRoot2", 112),
+                null, null, 0);
+
+        final SinkRecord transformedRecord = xform.apply(record);
+
+        Map<String, Object> key = (Map<String, Object>) transformedRecord.key();
+        assertNull(transformedRecord.keySchema());
+        assertEquals(111, key.get("keepInRoot"));
+        assertEquals(112, key.get("keepInRoot2"));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
     public void schemalessKeepInRootEmptyFields() {
         xform.configure(Map.of("field", "magic", "keepInRootFieldNames", "keepInRoot,keepInRoot2"));
 
@@ -114,6 +133,28 @@ public class ExtendedHoistFieldTest {
         assertEquals(111, ((Struct) transformedRecord.key()).get("keepInRoot"));
         assertEquals(112, ((Struct) transformedRecord.key()).get("keepInRoot2"));
         assertEquals(42, ((Struct) transformedRecord.key()).getStruct("magic").get("shouldBeMoved"));
+    }
+
+    @Test
+    public void schemaNoChange() {
+
+        Schema originalSchema = SchemaBuilder.struct()
+                .field("keepInRoot", Schema.INT32_SCHEMA)
+                .field("keepInRoot2", Schema.INT32_SCHEMA)
+                .build();
+
+        Struct input = new Struct(originalSchema)
+                .put("keepInRoot", 111)
+                .put("keepInRoot2", 112);
+
+        xform.configure(Map.of("field", "magic", "keepInRootFieldNames", "keepInRoot,keepInRoot2"));
+
+        final SinkRecord record = new SinkRecord("test", 0, originalSchema, input, null, null, 0);
+        final SinkRecord transformedRecord = xform.apply(record);
+
+        assertEquals(Schema.Type.STRUCT, transformedRecord.keySchema().type());
+        assertEquals(111, ((Struct) transformedRecord.key()).get("keepInRoot"));
+        assertEquals(112, ((Struct) transformedRecord.key()).get("keepInRoot2"));
     }
 
     @Test

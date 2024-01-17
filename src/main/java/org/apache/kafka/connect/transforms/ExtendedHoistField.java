@@ -124,25 +124,30 @@ public abstract class ExtendedHoistField<R extends ConnectRecord<R>> implements 
                     schemaUpdateCache.put(schema, updatedSchema);
                 }
 
-                updatedValue = new Struct(updatedSchema);
-                final Struct innerValue = new Struct(updatedSchema.field(fieldName).schema());
+                if (updatedSchema.field(fieldName) != null) {
+                    updatedValue = new Struct(updatedSchema);
 
-                boolean somethingInInnerValue = schema.fields().stream().map(f -> {
-                    if (valueStruct.get(f) == null) {
-                        return false;
+                    final Struct innerValue = new Struct(updatedSchema.field(fieldName).schema());
+
+                    boolean somethingInInnerValue = schema.fields().stream().map(f -> {
+                        if (valueStruct.get(f) == null) {
+                            return false;
+                        }
+
+                        if (keepInRootFieldNames.contains(f.name())) {
+                            updatedValue.put(f.name(), valueStruct.get(f));
+                            return false;
+                        } else {
+                            innerValue.put(f.name(), valueStruct.get(f));
+                            return true;
+                        }
+                    }).reduce(false, Boolean::logicalOr);
+
+                    if (somethingInInnerValue) {
+                        updatedValue.put(fieldName, innerValue);
                     }
-
-                    if (keepInRootFieldNames.contains(f.name())) {
-                        updatedValue.put(f.name(), valueStruct.get(f));
-                        return false;
-                    } else {
-                        innerValue.put(f.name(), valueStruct.get(f));
-                        return true;
-                    }
-                }).reduce(false, Boolean::logicalOr);
-
-                if (somethingInInnerValue) {
-                    updatedValue.put(fieldName, innerValue);
+                } else {
+                    return record;
                 }
             } else {
                 if (updatedSchema == null) {
@@ -185,7 +190,7 @@ public abstract class ExtendedHoistField<R extends ConnectRecord<R>> implements 
 
         @Override
         protected R newRecord(R record, Schema updatedSchema, Object updatedValue) {
-            return record.newRecord(record.topic(), record.kafkaPartition(), updatedSchema, updatedValue, record.valueSchema(), record.value(), record.timestamp());
+            return record.newRecord(record.topic(), record.kafkaPartition(), updatedSchema, updatedValue, record.valueSchema(), record.value(), record.timestamp(), record.headers());
         }
     }
 
@@ -202,7 +207,7 @@ public abstract class ExtendedHoistField<R extends ConnectRecord<R>> implements 
 
         @Override
         protected R newRecord(R record, Schema updatedSchema, Object updatedValue) {
-            return record.newRecord(record.topic(), record.kafkaPartition(), record.keySchema(), record.key(), updatedSchema, updatedValue, record.timestamp());
+            return record.newRecord(record.topic(), record.kafkaPartition(), record.keySchema(), record.key(), updatedSchema, updatedValue, record.timestamp(), record.headers());
         }
     }
 

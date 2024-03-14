@@ -6,7 +6,7 @@
 
     <groupId>org.example</groupId>
     <artifactId>kafka-custom-transforms</artifactId>
-    <version>1.1-SNAPSHOT</version>
+    <version>1.1</version>
 
     <properties>
         <maven.compiler.source>11</maven.compiler.source>

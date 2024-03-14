@@ -26,14 +26,14 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 
-public abstract class StructuredSchemalessToJson<R extends ConnectRecord<R>> implements Transformation<R> {
+public abstract class StructuredSchemalessToJsonString<R extends ConnectRecord<R>> implements Transformation<R> {
     public static final String OVERVIEW_DOC =
             "Transforms schemaless structured data to a simple json String."
                     + "<p/>Use the concrete transformation type designed for the record key (<code>" + Key.class.getName() + "</code>) "
                     + "or value (<code>" + Value.class.getName() + "</code>)." +
                     "<p/>This SMT let untouched data with a schema and unstructured data.";
     public static final ConfigDef CONFIG_DEF = new ConfigDef();
-    private static final Logger LOGGER = LoggerFactory.getLogger(StructuredSchemalessToJson.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(StructuredSchemalessToJsonString.class);
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     @Override
@@ -76,7 +76,7 @@ public abstract class StructuredSchemalessToJson<R extends ConnectRecord<R>> imp
 
     protected abstract R newRecord(R record, Object updatedValue);
 
-    public static class Key<R extends ConnectRecord<R>> extends StructuredSchemalessToJson<R> {
+    public static class Key<R extends ConnectRecord<R>> extends StructuredSchemalessToJsonString<R> {
         @Override
         protected Schema operatingSchema(R record) {
             return record.keySchema();
@@ -93,7 +93,7 @@ public abstract class StructuredSchemalessToJson<R extends ConnectRecord<R>> imp
         }
     }
 
-    public static class Value<R extends ConnectRecord<R>> extends StructuredSchemalessToJson<R> {
+    public static class Value<R extends ConnectRecord<R>> extends StructuredSchemalessToJsonString<R> {
         @Override
         protected Schema operatingSchema(R record) {
             return record.valueSchema();

@@ -13,8 +13,8 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-class StructuredSchemalessToJsonTest {
-    private final StructuredSchemalessToJson<SinkRecord> xform = new StructuredSchemalessToJson.Key<>();
+class StructuredSchemalessToJsonStringTest {
+    private final StructuredSchemalessToJsonString<SinkRecord> xform = new StructuredSchemalessToJsonString.Key<>();
 
     @AfterEach
     public void teardown() {

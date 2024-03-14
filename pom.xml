@@ -15,7 +15,7 @@
         <confluent.hub.packaging.version>0.12.0</confluent.hub.packaging.version>
         <junit.version>5.9.2</junit.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <logback.version>1.4.5</logback.version>
+        <logback.version>1.4.12</logback.version>
         <slf4j.version>1.7.36</slf4j.version>
         <maven.plugin.compiler.version>3.11.0</maven.plugin.compiler.version>
     </properties>

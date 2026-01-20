@@ -6,18 +6,18 @@
 
     <groupId>org.example</groupId>
     <artifactId>kafka-custom-transforms</artifactId>
-    <version>1.1</version>
+    <version>2.0</version>
 
     <properties>
-        <maven.compiler.source>11</maven.compiler.source>
-        <maven.compiler.target>11</maven.compiler.target>
-        <kafka.version>3.4.0</kafka.version>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <kafka.version>4.1.1</kafka.version>
         <confluent.hub.packaging.version>0.12.0</confluent.hub.packaging.version>
-        <junit.version>5.9.2</junit.version>
+        <junit.version>5.14.2</junit.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <logback.version>1.4.12</logback.version>
-        <slf4j.version>1.7.36</slf4j.version>
-        <maven.plugin.compiler.version>3.11.0</maven.plugin.compiler.version>
+        <logback.version>1.5.25</logback.version>
+        <slf4j.version>2.0.17</slf4j.version>
+        <maven.plugin.compiler.version>3.14.1</maven.plugin.compiler.version>
     </properties>
 
     <dependencies>
@@ -56,11 +56,6 @@
             <artifactId>slf4j-api</artifactId>
             <version>${slf4j.version}</version>
             <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.example</groupId>
-            <artifactId>kafka-custom-transforms</artifactId>
-            <version>1.1</version>
         </dependency>
     </dependencies>
     <build>
